@@ -2,7 +2,9 @@ package com.shelia.coolweather.activity;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.support.v7.app.AppCompatActivity;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.os.Bundle;
 //import android.support.v7.widget.ActivityChooserModel;
 import android.text.TextUtils;
@@ -68,10 +70,23 @@ public class ChooseAreaActivity extends Activity {
      */
     private int currentLevel;
 
+    /**
+     * 判断是否从WeatherActivity中跳转过来
+     * @param savedInstanceState
+     */
+    private boolean isFromWeatherActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        isFromWeatherActivity=getIntent().getBooleanExtra("from_weather_activity",false);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        if(prefs.getBoolean("city_selected",false)&&!isFromWeatherActivity){
+            Intent intent = new Intent(this,WeatherActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.choose_area);
         listView=(ListView)findViewById(R.id.list_view);
@@ -89,10 +104,16 @@ public class ChooseAreaActivity extends Activity {
                 }else if(currentLevel==LEVEL_CITY){
                     selectedCity=cityList.get(index);
                     queryCounties();
+                }else if(currentLevel==LEVEL_COUNTY){
+                    String countyCode=countyList.get(index).getCountyCode();
+                    Intent intent = new Intent(ChooseAreaActivity.this,WeatherActivity.class);
+                    intent.putExtra("county_code",countyCode);
+                    startActivity(intent);
+                    finish();
                 }
             }
         });
-        queryProvinces();
+        queryProvinces();//加载省级数据
     }
     /**
      * 查询全国所有的省，优先从数据库查询，如果没有查询到再到服务器上查询
@@ -222,6 +243,24 @@ public class ChooseAreaActivity extends Activity {
     private void closeProgressDialog(){
         if(progressDialog!=null){
             progressDialog.dismiss();
+        }
+    }
+
+    /**
+     * 返回键
+     */
+    @Override
+    public void onBackPressed(){
+        if(currentLevel==LEVEL_COUNTY){
+            queryCities();
+        }else if(currentLevel==LEVEL_CITY){
+            queryProvinces();
+        }else {
+            if(isFromWeatherActivity){
+                Intent intent=new Intent(this,WeatherActivity.class);
+                startActivity(intent);
+            }
+            finish();
         }
     }
 }
