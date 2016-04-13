@@ -14,6 +14,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.shelia.coolweather.R;
+import com.shelia.coolweather.receiver.AutoUpdateReceiver;
+import com.shelia.coolweather.service.AutoUpdateService;
 import com.shelia.coolweather.util.HttpCallbackListener;
 import com.shelia.coolweather.util.HttpUtil;
 import com.shelia.coolweather.util.Utility;
@@ -182,6 +184,8 @@ import org.w3c.dom.Text;
         currentDateText.setText(prefs.getString("current_date", ""));
         weatherInfoLayout.setVisibility(View.VISIBLE);
         cityNameText.setVisibility(View.VISIBLE);
+        Intent intent=new Intent(this, AutoUpdateService.class);
+        startService(intent);
     }
 
 }
